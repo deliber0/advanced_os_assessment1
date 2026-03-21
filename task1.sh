@@ -49,11 +49,72 @@ show_top_processes() {
 	echo
 }
 
+terminate_process() {
+	echo
+	echo "===== Terminate Process ====="
+
+	# Asking for PID is safer than offering options
+	# Avoids the user accidently terminating the wrong process
+
+	read -p "Enter PID to terminate: " pid
+
+	# Validation
+	if ! [[ "$pid" =~ ^[0-9]+$ ]]; then
+		echo "Invalid PID. Please enter a numeric process ID."
+		echo
+		return
+	fi
+
+	# Checking the process exists first
+	if ! ps -p "$pid" > /dev/null 2>&1; then
+		echo "Process with PID $pid was not found."
+		echo
+		return
+	fi
+
+	process_name=$(ps -p "$pid" -o comm= | xargs)
+
+	# Critical process protection is added to avoid terminating
+	# unsafe system processes.
+	case "$process_name" in
+	systemd|init|systemd-journal|systemd-resolved|bash|sudo)
+	echo "Termination blocked: $process_name is treated as a critical system process."
+	echo
+	return
+	;;
+	esac
+
+	echo "Selected process:"
+	ps -p "$pid" -o pid,user,%cpu,%mem,comm
+
+	# Confirmation is required so termination is never performed immediately.
+	read -p "Are you sure you want to terminate PID $pid? (Y/N): " confirm
+
+	case "$confirm" in 
+		Y|y)
+			if kill "$pid" 2>/dev/null; then
+				echo "Process $pid terminated successfully."
+			else
+				echo "Failed to terminate process $pid."
+			fi
+			;;
+		N|n)
+			echo "Termincation cancelled."
+			;;
+		*)
+			echo "Invalid input. Termination cancelled."
+			;;
+	esac
+
+	echo
+}
+
 while true; do
     echo "===== System Admin Tool ====="
     echo "1. Show system usage"
 	echo "2. Show top processes"
-    echo "3. Exit"
+	echo "3. Termniate a process"
+    echo "4. Exit"
 
     # Using read here so the menu waits for explicit user input
     # rather than running actions automatically.
@@ -68,7 +129,10 @@ while true; do
 		2)
 			show_top_processes
 			;;
-        3)
+		3)
+			terminate_process
+			;;
+        4)
             echo "Exiting..."
             break
             ;;
