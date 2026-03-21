@@ -4,7 +4,7 @@
 LOG_FILE="system_monitor_log.txt"
 
 log_action() {
-	# Using a single logging function keeps format consistnent 
+	# Using a single logging function keeps format consistent 
 	# and avoids repeating myself throughout the script
 	local message="$1"
 	echo "$(date '+%Y-%m-%d %H:%M:%S') | $message" >> "$LOG_FILE"
@@ -51,14 +51,14 @@ show_top_processes() {
 	echo "===== Top 10 Memory-Consuming Processes ====="
 
 	# Using ps instead of top because it is non-interactive
-	# and easier control in a script
+	# and easier to control in a script
 	# --sort=-%mem sorts by memory usage (highest first)
 	# Using 'comm' instead of 'args' so the output stays readable.
 	ps -eo pid,user,%cpu,%mem,comm --sort=-%mem | head -n 11
 
 	echo
 
-	log_action "Viewed top 10 proceses by memory usage"
+	log_action "Viewed top 10 processes by memory usage"
 }
 
 terminate_process() {
@@ -66,7 +66,7 @@ terminate_process() {
 	echo "===== Terminate Process ====="
 
 	# Asking for PID is safer than offering options
-	# Avoids the user accidently terminating the wrong process
+	# Avoids the user accidentaly terminating the wrong process
 
 	read -p "Enter PID to terminate: " pid
 
@@ -116,7 +116,7 @@ terminate_process() {
 			fi
 			;;
 		N|n)
-			echo "Termincation cancelled."
+			echo "Termination cancelled."
 			log_action "Cancelled termination for PID $pid ($process_name)"
 			;;
 		*)
@@ -132,7 +132,7 @@ while true; do
     echo "===== System Admin Tool ====="
     echo "1. Show system usage"
 	echo "2. Show top processes"
-	echo "3. Termniate a process"
+	echo "3. Terminate a process"
     echo "4. Exit"
 
     # Using read here so the menu waits for explicit user input
