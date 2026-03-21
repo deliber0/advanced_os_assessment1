@@ -128,12 +128,34 @@ terminate_process() {
 	echo
 }
 
+inspect_directory_usage() {
+	echo
+	echo "===== Directory Disk Usage ====="
+
+	# Ask the user for a path allows the same function to inspect different locations.
+	read -p "Enter directory path to inspect: " dir_path
+
+	# Checking the path is real 
+	if [[ ! -d "$dir_path" ]]; then
+		echo "Invalid directory path."
+		echo
+		return
+	fi
+
+	# Using du -sh gives a readable total size for the directory 
+	usage=$(du -sh "$dir_path" 2>/dev/null | awk '{print $1}')
+
+	echo "Directory: $dir_path"
+	echo "Total size: $usage"
+}
+
 while true; do
     echo "===== System Admin Tool ====="
     echo "1. Show system usage"
 	echo "2. Show top processes"
 	echo "3. Terminate a process"
-    echo "4. Exit"
+	echo "4. Inspect directory disk usage"
+    echo "5. Exit"
 
     # Using read here so the menu waits for explicit user input
     # rather than running actions automatically.
@@ -151,7 +173,10 @@ while true; do
 		3)
 			terminate_process
 			;;
-        4)
+		4) 
+			inspect_directory_usage
+			;;
+        5)
             echo "Exiting..."
 			log_action "Exited system admin tool"
             break
