@@ -36,10 +36,24 @@ show_system_usage() {
     echo
 }
 
+show_top_processes() {
+	echo
+	echo "===== Top 10 Memory-Consuming Processes ====="
+
+	# Using ps instead of top because it is non-interactive
+	# and easier control in a script
+	# --sort=-%mem sorts by memory usage (highest first)
+	# Using 'comm' instead of 'args' so the output stays readable.
+	ps -eo pid,user,%cpu,%mem,comm --sort=-%mem | head -n 11
+
+	echo
+}
+
 while true; do
     echo "===== System Admin Tool ====="
     echo "1. Show system usage"
-    echo "2. Exit"
+	echo "2. Show top processes"
+    echo "3. Exit"
 
     # Using read here so the menu waits for explicit user input
     # rather than running actions automatically.
@@ -51,7 +65,10 @@ while true; do
         1)
             show_system_usage
             ;;
-        2)
+		2)
+			show_top_processes
+			;;
+        3)
             echo "Exiting..."
             break
             ;;
