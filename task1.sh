@@ -1,6 +1,14 @@
 #!/bin/bash
 
 # Task 1 - System Admin Tool
+LOG_FILE="system_monitor_log.txt"
+
+log_action() {
+	# Using a single logging function keeps format consistnent 
+	# and avoids repeating myself throughout the script
+	local message="$1"
+	echo "$(date '+%Y-%m-%d %H:%M:%S') | $message" >> "$LOG_FILE"
+}
 
 show_system_usage() {
     # Using uptime for load average because it gives a quick summary
@@ -34,6 +42,8 @@ show_system_usage() {
     echo "Swap Used: $swap_used / $swap_total"
     echo "Swap Free: $swap_free"
     echo
+
+	log_action "Viewed system usage"
 }
 
 show_top_processes() {
@@ -47,6 +57,8 @@ show_top_processes() {
 	ps -eo pid,user,%cpu,%mem,comm --sort=-%mem | head -n 11
 
 	echo
+
+	log_action "Viewed top 10 proceses by memory usage"
 }
 
 terminate_process() {
@@ -62,6 +74,7 @@ terminate_process() {
 	if ! [[ "$pid" =~ ^[0-9]+$ ]]; then
 		echo "Invalid PID. Please enter a numeric process ID."
 		echo
+		log_action "Invalid PID entered for termination: $pid"
 		return
 	fi
 
@@ -69,6 +82,7 @@ terminate_process() {
 	if ! ps -p "$pid" > /dev/null 2>&1; then
 		echo "Process with PID $pid was not found."
 		echo
+		log_action "Termination attempted on non-existent PID: $pid"
 		return
 	fi
 
@@ -77,11 +91,12 @@ terminate_process() {
 	# Critical process protection is added to avoid terminating
 	# unsafe system processes.
 	case "$process_name" in
-	systemd|init|systemd-journal|systemd-resolved|bash|sudo)
-	echo "Termination blocked: $process_name is treated as a critical system process."
-	echo
-	return
-	;;
+		systemd|init|systemd-journal|systemd-resolved|bash|sudo)
+			echo "Termination blocked: $process_name is treated as a critical system process."
+			echo
+			log_action "Blocked termination of critical process: PID $pid ($process_name)"
+			return
+			;;
 	esac
 
 	echo "Selected process:"
@@ -94,15 +109,19 @@ terminate_process() {
 		Y|y)
 			if kill "$pid" 2>/dev/null; then
 				echo "Process $pid terminated successfully."
+				log_action "Terminated process: PID $pid ($process_name)"
 			else
 				echo "Failed to terminate process $pid."
+				log_action "Failed to terminate process: PID $pid ($process_name)"
 			fi
 			;;
 		N|n)
 			echo "Termincation cancelled."
+			log_action "Cancelled termination for PID $pid ($process_name)"
 			;;
 		*)
 			echo "Invalid input. Termination cancelled."
+			log_action "Invalid confirmation input during termination for PID $pid ($process_name)"
 			;;
 	esac
 
@@ -134,10 +153,12 @@ while true; do
 			;;
         4)
             echo "Exiting..."
+			log_action "Exited system admin tool"
             break
             ;;
         *)
             echo "Invalid option"
+			log_action "Invalid menu option entered: $choice"
             ;;
     esac
 
