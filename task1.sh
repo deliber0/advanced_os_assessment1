@@ -139,6 +139,7 @@ inspect_directory_usage() {
 	if [[ ! -d "$dir_path" ]]; then
 		echo "Invalid directory path."
 		echo
+		log_action "Invalid directory path entered for disk inspection: $dir_path"
 		return
 	fi
 
@@ -147,6 +148,9 @@ inspect_directory_usage() {
 
 	echo "Directory: $dir_path"
 	echo "Total size: $usage"
+	echo
+
+	log_action "Inspected disk usage for directory: $dir_path ($usage)"
 }
 
 while true; do
