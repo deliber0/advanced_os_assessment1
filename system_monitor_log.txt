@@ -1,0 +1,23 @@
+2026-03-21 17:11:45 | Viewed system usage
+2026-03-21 17:11:48 | Viewed top 10 proceses by memory usage
+2026-03-21 17:11:58 | Blocked termination of critical process: PID 1 (systemd)
+2026-03-21 17:11:59 | Exited system admin tool
+2026-03-21 17:17:31 | Exited system admin tool
+2026-03-21 17:57:50 | Exited system admin tool
+2026-03-21 17:59:03 | Exited system admin tool
+2026-03-21 18:00:31 | Exited system admin tool
+2026-03-21 18:01:43 | Exited system admin tool
+2026-03-21 19:03:17 | Invalid directory path entered for large log scan: /home/deli
+2026-03-21 19:03:21 | Invalid directory path entered for large log scan: .
+2026-03-21 19:07:20 | Exited system admin tool
+2026-03-21 19:07:22 | Invalid directory path entered for large log scan: /
+2026-03-21 19:07:28 | Invalid directory path entered for large log scan: .
+2026-03-21 19:08:06 | Exited system admin tool
+2026-03-21 19:08:10 | No large log files found in directory: .
+2026-03-21 22:42:49 | Exited system admin tool
+2026-03-21 22:42:49 | Failed to archive large log file: 
+2026-03-21 22:47:26 | No large log files found in directory: .
+2026-03-21 22:47:31 | Exited system admin tool
+2026-03-21 22:49:14 | Detected large log files in directory: .
+2026-03-21 22:49:24 | Created archive directory: ArchiveLogs
+2026-03-21 22:49:24 | Archived large log file: ./big.log -> ArchiveLogs/big.log_20260321_224924.gz

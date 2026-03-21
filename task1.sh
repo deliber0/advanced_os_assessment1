@@ -2,6 +2,7 @@
 
 # Task 1 - System Admin Tool
 LOG_FILE="system_monitor_log.txt"
+ARCHIVE_DIR="ArchiveLogs"
 
 log_action() {
 	# Using a single logging function keeps format consistent 
@@ -66,7 +67,7 @@ terminate_process() {
 	echo "===== Terminate Process ====="
 
 	# Asking for PID is safer than offering options
-	# Avoids the user accidentaly terminating the wrong process
+	# Avoids the user accidentally terminating the wrong process
 
 	read -p "Enter PID to terminate: " pid
 
@@ -157,7 +158,7 @@ find_large_logs() {
 	echo
 	echo "===== Large Log File Detection ====="
 
-	# Asking for a directory rather than hardcoding a single log location"
+	# Asking for a directory rather than hardcoding a single log location
 	read -p "Enter directory path to scan for large log files: " dir_path
 
 	if [[ ! -d "$dir_path" ]]; then
@@ -186,6 +187,104 @@ find_large_logs() {
 	log_action "Detected large log files in directory: $dir_path" 
 }
 
+archive_large_logs() {
+	echo
+	echo "===== Archive Large Logs Files ====="
+
+	# Asking for a directory rather than it being fixed to one location.
+	read -p "Enter directory path to archive large log files from: " dir_path
+
+	if [[ ! -d "$dir_path" ]]; then
+		echo "Invalid directory path."
+		echo
+		log_action "Invalid directory path entered for log archiving: $dir_path"
+		return
+	fi
+
+	# Creating ArchiveLogs if it doesn't exist yet
+	if [[ ! -d "$ARCHIVE_DIR" ]]; then
+		mkdir -p "$ARCHIVE_DIR"
+		log_action "Created archive directory: $ARCHIVE_DIR"
+	fi
+
+	# Using find to identify only large .log files
+	mapfile -t log_files < <(find "$dir_path" -type f -name "*.log" -size +50M 2>/dev/null)
+
+	if [[ ${#log_files[@]} -eq 0 ]]; then
+		echo "No .log files larger than 50MB were found to archive."
+		echo
+		log_action "No large log files found for archiving in directory: $dir_path"
+		return
+	fi
+
+	archived_count=0
+
+	for file in "${log_files[@]}"; do
+		base_name=$(basename "$file")
+		timestamp=$(date '+%Y%m%d_%H%M%S')
+		archive_name="${base_name}_${timestamp}.gz"
+		archive_path="$ARCHIVE_DIR/$archive_name"
+
+		# Using gzip compression to reduce storage space needed 
+		if gzip -c "$file" > "$archive_path"; then
+			echo "Archived: $file -> $archive_path"
+			log_action "Archived large log file: $file -> $archive_path"
+			((archived_count++))
+		else
+			echo "Failed to archive: $file"
+			log_action "Failed to archive large log file: $file"
+		fi
+	done
+
+	echo
+	echo "Archived $archived_count file(s)."
+	echo
+
+	check_archive_size
+}
+
+check_archive_size() {
+	# Checking the size of the archive to check if the 1GB limit is reached.
+	if [[ ! -d "$ARCHIVE_DIR" ]]; then
+		return
+	fi
+
+	archive_size_bytes=$(du -sb "$ARCHIVE_DIR" 2>/dev/null | awk '{print $1}')
+
+	if [[ -n "$archive_size_bytes" && "$archive_size_bytes" -gt 1073741824 ]]; then
+		archive_size_human=$(du -sh "$ARCHIVE_DIR" 2>/dev/null | awk '{print $1}')
+		echo "Warning: ArchiveLogs exceeds 1GB (current size: $archive_size_human)."
+		echo
+		log_action "ArchiveLogs exceeded 1GB warning triggered (size: $archive_size_human)"
+	fi
+}
+
+confirm_exit() {
+	echo
+	echo "===== Exit Confirmation ====="
+
+	while true; do
+		# Loop ensures a valid input is received
+		read -p "Are you sure you want to exit? (Y/N): " confirm_exit_choice
+
+		case "$confirm_exit_choice" in
+			Y|y)
+				echo "Exiting system admin tool..."
+				log_action "Exited system admin tool"
+				return 0
+				;;
+			N|n)
+				echo "Exit cancelled."
+				log_action "Cancelled exit request"
+				return 1
+				;;
+			*)
+				echo "Invalid input. Please enter Y or N."
+				;;
+		esac
+	done
+}
+
 while true; do
     echo "===== System Admin Tool ====="
     echo "1. Show system usage"
@@ -193,7 +292,8 @@ while true; do
 	echo "3. Terminate a process"
 	echo "4. Inspect directory disk usage"
 	echo "5. Find large log files"
-    echo "6. Exit"
+	echo "6. Archive large log files"
+    echo "7. Exit"
 
     # Using read here so the menu waits for explicit user input
     # rather than running actions automatically.
@@ -217,11 +317,14 @@ while true; do
 		5)
 			find_large_logs
 			;;
-        6)
-            echo "Exiting..."
-			log_action "Exited system admin tool"
-            break
-            ;;
+		6)
+			archive_large_logs
+			;;
+        7)
+            if confirm_exit; then
+				break
+			fi
+			;;
         *)
             echo "Invalid option"
 			log_action "Invalid menu option entered: $choice"
