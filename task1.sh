@@ -153,13 +153,47 @@ inspect_directory_usage() {
 	log_action "Inspected disk usage for directory: $dir_path ($usage)"
 }
 
+find_large_logs() {
+	echo
+	echo "===== Large Log File Detection ====="
+
+	# Asking for a directory rather than hardcoding a single log location"
+	read -p "Enter directory path to scan for large log files: " dir_path
+
+	if [[ ! -d "$dir_path" ]]; then
+		echo "Invalid directory path."
+		echo 
+		log_action "Invalid directory path entered for large log scan: $dir_path"
+		return
+	fi
+
+	# Using 'find' because it is available by default on Linux systems,
+	# making the script portable and avoids needing to install packages.
+	# Tools like 'fd' can offer faster searching, but needs to be installed.
+	large_logs=$(find "$dir_path" -type f -name "*.log" -size +50M -exec ls -lh {} \; 2>/dev/null)
+
+	if [[ -z "$large_logs" ]]; then
+		echo "No .log files larger than 50MB were found."
+		echo
+		log_action "No large log files found in directory: $dir_path"
+		return
+	fi
+
+	echo "Large log files found:"
+	echo "$large_logs"
+	echo
+
+	log_action "Detected large log files in directory: $dir_path" 
+}
+
 while true; do
     echo "===== System Admin Tool ====="
     echo "1. Show system usage"
 	echo "2. Show top processes"
 	echo "3. Terminate a process"
 	echo "4. Inspect directory disk usage"
-    echo "5. Exit"
+	echo "5. Find large log files"
+    echo "6. Exit"
 
     # Using read here so the menu waits for explicit user input
     # rather than running actions automatically.
@@ -180,7 +214,10 @@ while true; do
 		4) 
 			inspect_directory_usage
 			;;
-        5)
+		5)
+			find_large_logs
+			;;
+        6)
             echo "Exiting..."
 			log_action "Exited system admin tool"
             break
