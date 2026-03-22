@@ -167,6 +167,39 @@ def submit_job():
 
     print("Job submitted successfully.")
 
+def view_pending_jobs():
+    # Two ways were considered here
+    # 1. Print each job line exactly as stored in the file
+    # 2. Format the output 
+
+    # Formatted output was chosen because it is significantly more
+    # readable and provides a clearer overview of the queue.
+
+    jobs = load_jobs()
+
+    print("\n=== Pending Jobs ===")
+
+    if not jobs:
+        # Explicit message chosen instead of printing nothing
+        # to clearly inform the user that the queue is empty.
+        print("No pending jobs found.")
+        return
+
+    # Display table header
+    print(f"{'Pos':<5}{'Student ID':<15}{'Job Name':<20}{'Exec Time':<12}{'Priority':<10}")
+    print("-" * 62)
+
+    # Position is calculated dynamically instead of being stored
+    # in the file to avoid redundancy and ensure accuracy.
+    for index, job in enumerate(jobs, start=1):
+        print(
+            f"{index:<5}"
+            f"{job['student_id']:<15}"
+            f"{job['job_name']:<20}"
+            f"{job['execution_time']:<12}"
+            f"{job['priority']:<10}"
+        )
+
 # Menu
 def print_menu():
     print("\n=== University HPC Job Scheduler ===")
@@ -221,7 +254,7 @@ def main():
         choice = input("Select an option: ").strip()
 
         if choice == "1":
-            print("Pending jobs view not implemented yet.")
+            view_pending_jobs()
         elif choice == "2":
             submit_job()
         elif choice == "3":
