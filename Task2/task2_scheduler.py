@@ -200,6 +200,46 @@ def view_pending_jobs():
             f"{job['priority']:<10}"
         )
 
+def view_completed_jobs():
+    # Completed jobs are stored with additional metadata:
+    # scheduling type and completion timestamp.
+    # This allows the user to review how jobs were processed.
+
+    print("\n=== Completed Jobs ===")
+
+    try:
+        with open(COMPLETED_FILE, "r", encoding="utf-8") as file:
+            lines = [line.strip() for line in file if line.strip()]
+    except FileNotFoundError:
+        lines = []
+
+    if not lines:
+        print("No completed jobs found.")
+        return
+
+    # Table formatting 
+    print(f"{'Pos':<5}{'Student ID':<15}{'Job Name':<20}{'Exec Time':<12}{'Priority':<10}{'Method':<12}{'Completed At'}")
+    print("-" * 95)
+
+    for index, line in enumerate(lines, start=1):
+        parts = line.split("|")
+
+        # Skip malformed entries
+        if len(parts) != 6:
+            continue
+
+        student_id, job_name, execution_time, priority, method, timestamp = parts
+
+        print(
+            f"{index:<5}"
+            f"{student_id:<15}"
+            f"{job_name:<20}"
+            f"{execution_time:<12}"
+            f"{priority:<10}"
+            f"{method:<12}"
+            f"{timestamp}"
+        )
+
 # Menu
 def print_menu():
     print("\n=== University HPC Job Scheduler ===")
@@ -260,7 +300,7 @@ def main():
         elif choice == "3":
             choose_scheduling_method()
         elif choice == "4":
-            print("Completed jobs view not implemented yet.")
+            view_completed_jobs()
         elif choice == "5":
             if confirm_exit():
                 break
