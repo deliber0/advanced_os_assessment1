@@ -210,6 +210,26 @@ check_submission() {
     fi
 }
 
+list_submissions() {
+    echo
+    echo "===== Submitted Assignments ====="
+
+    if [[ ! -f "$SUBMISSIONS_FILE" || ! -s "$SUBMISSIONS_FILE" ]]; then
+        echo "No submissions have been recorded yet."
+        log_action "LIST | No submissions found"
+        return
+    fi
+
+    printf "%-12s %-25s %-64s %-20s\n" "Student ID" "Filename" "File Hash" "Timestamp"
+    echo "----------------------------------------------------------------------------------------------------------------------------"
+
+    while IFS='|' read -r student_id filename file_hash timestamp; do
+        printf "%-12s %-25s %-64s %-20s\n" "$student_id" "$filename" "$file_hash" "$timestamp"
+    done < "$SUBMISSIONS_FILE"
+
+    log_action "LIST | Displayed all recorded submissions"
+}
+
 while true
 do
     echo
@@ -236,7 +256,7 @@ do
             ;;
         3)
             echo
-            echo "List submitted assignments selected."
+            list_submissions
             log_action "MENU | List submitted assignments selected"
             ;;
         4)
