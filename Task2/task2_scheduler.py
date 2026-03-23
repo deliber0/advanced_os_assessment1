@@ -10,6 +10,8 @@ QUEUE_FILE = "job_queue.txt"
 COMPLETED_FILE = "completed_jobs.txt"
 LOG_FILE = "scheduler_log.txt"
 
+TIME_QUANTUM = 5
+
 # Logs system events with timestamps for traceability
 def log_event(message):
     timestamp = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -77,9 +79,129 @@ def append_completed_job(job, scheduling_type):
             f"{job['priority']}|{scheduling_type}|{completed_time}\n"
         )
 
+def process_priority_jobs():
+    # Two possible approaches were considered:
+    # 1. Process jobs directly from the live queue file
+    # 2. Take a snapshot of the queue, sort it, and process that snapshot
+    #
+    # A snapshot was chosen because it makes the scheduling run
+    # deterministic. Handling jobs added during execution would require concurrency control.
+
+    jobs = load_jobs()
+
+    print("\n=== Priority Scheduling ===")
+
+    if not jobs:
+        print("No pending jobs to process.")
+        return
+
+    # Higher numeric priority is treated as more important.
+    sorted_jobs = sorted(jobs, key=lambda job: job["priority"], reverse=True)
+
+    print("Processing jobs in priority order...\n")
+
+    for index, job in enumerate(sorted_jobs, start=1):
+        print(
+            f"{index}. Processing Job='{job['job_name']}' | "
+            f"StudentID={job['student_id']} | "
+            f"ExecTime={job['execution_time']} | "
+            f"Priority={job['priority']}"
+        )
+
+        log_event(
+            f"PRIORITY | StudentID={job['student_id']} | "
+            f"Job={job['job_name']} | "
+            f"ExecTime={job['execution_time']} | "
+            f"Priority={job['priority']} | Completed"
+        )
+
+        append_completed_job(job, "PRIORITY")
+
+    save_jobs([])
+
+    print("\nPriority scheduling complete. All pending jobs moved to completed jobs.")
+
+def process_round_robin():
+    jobs = load_jobs()
+
+    print("\n=== Round Robin Scheduling ===")
+
+    if not jobs:
+        print("No pending jobs to process.")
+        return
+
+    # Create an in-memory working queue with remaining time added.
+    # A simple list was chosen rather than a dedicated queue library
+    # because it is easier 
+    working_queue = []
+    for job in jobs:
+        working_queue.append({
+            "student_id": job["student_id"],
+            "job_name": job["job_name"],
+            "execution_time": job["execution_time"],
+            "priority": job["priority"],
+            "remaining_time": job["execution_time"]
+        })
+
+    print(f"Processing jobs using Round Robin with a {TIME_QUANTUM}-second quantum...\n")
+
+    while working_queue:
+        current_job = working_queue.pop(0)
+
+        time_slice = min(TIME_QUANTUM, current_job["remaining_time"])
+        current_job["remaining_time"] -= time_slice
+
+        print(
+            f"Processing Job='{current_job['job_name']}' | "
+            f"StudentID={current_job['student_id']} | "
+            f"Slice={time_slice} | "
+            f"Remaining={current_job['remaining_time']}"
+        )
+
+        if current_job["remaining_time"] > 0:
+            log_event(
+                f"ROUND_ROBIN | StudentID={current_job['student_id']} | "
+                f"Job={current_job['job_name']} | "
+                f"Slice={time_slice} | "
+                f"Remaining={current_job['remaining_time']}"
+            )
+
+            # Job is not finished, so move it to the back of the queue.
+            working_queue.append(current_job)
+        else:
+            log_event(
+                f"ROUND_ROBIN | StudentID={current_job['student_id']} | "
+                f"Job={current_job['job_name']} | "
+                f"Slice={time_slice} | Completed"
+            )
+
+            # Completed jobs are written using their original execution time.
+            completed_job = {
+                "student_id": current_job["student_id"],
+                "job_name": current_job["job_name"],
+                "execution_time": current_job["execution_time"],
+                "priority": current_job["priority"]
+            }
+            append_completed_job(completed_job, "ROUND_ROBIN")
+
+        # The queue file is updated after each cycle so it reflects
+        # the current pending state if the program is interrupted.
+        pending_jobs = []
+        for job in working_queue:
+            pending_jobs.append({
+                "student_id": job["student_id"],
+                "job_name": job["job_name"],
+                "execution_time": job["remaining_time"],
+                "priority": job["priority"]
+            })
+
+        save_jobs(pending_jobs)
+
+    print("\nRound Robin scheduling complete. All pending jobs moved to completed jobs.")
+
 def prompt_non_empty(prompt_text, field_name):
     # Returning to the main menu after invalid input would be easier,
-    # but repeated prompted is used because it gives a better user
+    # but repeated prompting was chosen because it gives a better user
     # experience during job submission.
     # The user can still exit by entering 'q'
     while True:
@@ -240,6 +362,16 @@ def view_completed_jobs():
             f"{timestamp}"
         )
 
+def save_jobs(jobs):
+    # The queue file is rewritten after processing so that only
+    # still-pending jobs remain in the queue.
+    with open(QUEUE_FILE, "w", encoding="utf-8") as file:
+        for job in jobs:
+            file.write(
+                f"{job['student_id']}|{job['job_name']}|"
+                f"{job['execution_time']}|{job['priority']}\n"
+            )
+
 # Menu
 def print_menu():
     print("\n=== University HPC Job Scheduler ===")
@@ -274,11 +406,11 @@ def choose_scheduling_method():
 
         if choice == "1":
             log_event("SCHEDULER | Round Robin selected")
-            print("Round Robin scheduling not implemented yet.")
+            process_round_robin()
             return
         elif choice == "2":
             log_event("SCHEDULER | Priority Scheduling selected")
-            print("Priority scheduling not implemented yet.")
+            process_priority_jobs()
             return
         elif choice == "3":
             return
