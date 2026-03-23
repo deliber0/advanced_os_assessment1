@@ -1,9 +1,33 @@
 #!/bin/bash
 
+# Task 3 Submission and Access Control System
+# This script provides a menu-driven interface for handling assignment submissions
+# and integrates with a python backend for duplicate detection and validation.
+
+# Bash is used for:
+# - User interaction and menu handling
+# - File system validation (existence, size, type)
+# - Logging system events
+
+# Python is used for:
+# - Content hashing
+# - Duplicate detection logic
+#
+# This seperation keeps system-level tasks in bash and computation-heavy logic in Python.
+
+
+# Resolve script directory to ensure all file paths work regardless of where the
+# script is executed from.
+# This avoids issues with relative paths when launching the script from outside the Task3 folder.
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG_FILE="$SCRIPT_DIR/submission_log.txt"
 SUBMISSIONS_FILE="$SCRIPT_DIR/submissions_db.txt"
 DUPLICATE_CHECKER="$SCRIPT_DIR/duplicate_checker.py"
+
+
+# Centralised logging function
+# Using a single function ensures consistent log formatting
+# and avoids repeating timestamp logic throughout the script.
 
 log_action() {
     local message="$1"
@@ -59,6 +83,7 @@ submit_assignment() {
         return
     fi
 
+    # Student ID is validated using a numeric regex pattern to ensure consistency 
     if ! [[ "$student_id" =~ ^[0-9]+$ ]]; then
         echo "Student ID must contain digits only."
         log_action "SUBMISSION | Failed | Invalid student ID format: $student_id"
@@ -110,6 +135,8 @@ submit_assignment() {
         return
     fi
 
+    # Python is used here for duplicate detection because it is well suited
+    # for file hasing.
     checker_output=$(python3 "$DUPLICATE_CHECKER" "$SUBMISSIONS_FILE" "$file_path")
     checker_status=$?
 
@@ -141,6 +168,48 @@ submit_assignment() {
     esac
 }
 
+check_submission() {
+    echo
+    echo "===== Check Submission ====="
+
+    read -r -p "Enter file path: " file_path
+
+    if [[ -z "$file_path" ]]; then
+        echo "File path cannot be empty."
+        log_action "CHECK | Failed | Empty file path"
+        return
+    fi
+
+    if [[ ! -f "$file_path" ]]; then
+        echo "File does not exist."
+        log_action "CHECK | Failed | File not found: $file_path"
+        return
+    fi
+
+    filename=$(basename "$file_path")
+
+    # Python is reused here to ensure consistency between submission
+    # and lookup logic by generating the same content hash.
+    checker_output=$(python3 "$DUPLICATE_CHECKER" "$SUBMISSIONS_FILE" "$file_path")
+    checker_status=$?
+
+    if [[ $checker_status -ne 0 ]]; then
+        echo "Check failed."
+        log_action "CHECK | Failed | Python checker error | $filename"
+        return
+    fi
+
+    duplicate_status="${checker_output%%|*}"
+
+    if [[ "$duplicate_status" == "DUPLICATE" ]]; then
+        echo "This file has already been submitted."
+        log_action "CHECK | Found existing submission | $filename"
+    else
+        echo "This file has not been submitted."
+        log_action "CHECK | No submission found | $filename"
+    fi
+}
+
 while true
 do
     echo
@@ -162,7 +231,7 @@ do
             ;;
         2)
             echo
-            echo "Check submitted file selected."
+            check_submission
             log_action "MENU | Check submitted file selected"
             ;;
         3)
