@@ -34,3 +34,56 @@
 2026-03-23 04:38:54 | MENU | Check submitted file selected
 2026-03-23 04:38:55 | MENU | Check submitted file selected
 2026-03-23 04:41:46 | SUBMISSION | Rejected duplicate | 1 | test.docx
+2026-03-23 05:15:56 | MENU | Check submitted file selected
+2026-03-23 05:16:01 | MENU | Invalid option entered: test.pdf
+2026-03-23 05:16:11 | MENU | Check submitted file selected
+2026-03-23 05:16:14 | MENU | Invalid option entered: test.pdf
+2026-03-23 05:16:18 | MENU | Check submitted file selected
+2026-03-23 05:16:20 | MENU | Check submitted file selected
+2026-03-23 05:16:20 | MENU | Check submitted file selected
+2026-03-23 05:16:20 | MENU | Check submitted file selected
+2026-03-23 05:16:21 | MENU | Check submitted file selected
+2026-03-23 05:16:21 | MENU | Check submitted file selected
+2026-03-23 05:16:21 | MENU | Check submitted file selected
+2026-03-23 05:16:21 | MENU | Check submitted file selected
+2026-03-23 05:16:22 | MENU | Check submitted file selected
+2026-03-23 05:16:22 | MENU | Check submitted file selected
+2026-03-23 05:16:24 | SYSTEM | User exited program
+2026-03-23 05:16:29 | CHECK | No submission found | test.pdf
+2026-03-23 05:16:29 | MENU | Check submitted file selected
+2026-03-23 05:16:42 | SUBMISSION | Failed | Invalid student ID format: test.pdf
+2026-03-23 05:16:54 | SUBMISSION | Recorded | 1 | test.pdf
+2026-03-23 05:17:02 | CHECK | Found existing submission | test.pdf
+2026-03-23 05:17:02 | MENU | Check submitted file selected
+2026-03-23 05:17:08 | CHECK | Failed | File not found: new.pd
+2026-03-23 05:17:08 | MENU | Check submitted file selected
+2026-03-23 05:17:13 | CHECK | No submission found | new.pdf
+2026-03-23 05:17:13 | MENU | Check submitted file selected
+2026-03-23 05:56:18 | MENU | List submitted assignments selected
+2026-03-23 05:56:19 | MENU | List submitted assignments selected
+2026-03-23 05:56:20 | MENU | List submitted assignments selected
+2026-03-23 05:56:20 | MENU | List submitted assignments selected
+2026-03-23 05:56:20 | MENU | List submitted assignments selected
+2026-03-23 05:56:20 | MENU | List submitted assignments selected
+2026-03-23 05:56:22 | SYSTEM | User exited program
+2026-03-23 05:56:25 | LIST | Displayed all recorded submissions
+2026-03-23 05:56:25 | MENU | List submitted assignments selected
+2026-03-23 12:13:59 | SYSTEM | User exited program
+2026-03-23 12:15:10 | SUBMISSION | Failed | 100116292 | File too large: large.pdf
+2026-03-23 12:23:53 | SYSTEM | User exited program
+2026-03-23 12:24:56 | SYSTEM | User exited program
+2026-03-23 12:26:31 | SUBMISSION | Recorded | 100116292 | sucess.pdf
+2026-03-23 12:27:57 | SYSTEM | User exited program
+2026-03-23 12:33:06 | SUBMISSION | Recorded | 100116292 | duplicate.pdf
+2026-03-23 12:33:23 | SUBMISSION | Rejected duplicate | 100116292 | duplicate.pdf
+2026-03-23 12:38:34 | LOGIN | Success | 100116292 | Normal
+2026-03-23 12:38:34 | MENU | Simulate login attempt selected
+2026-03-23 12:38:56 | LOGIN | Failed attempt | 100116292 | Suspicious repeated attempts detected
+2026-03-23 12:38:56 | MENU | Simulate login attempt selected
+2026-03-23 12:39:04 | LOGIN | Failed attempt | 100116292 | Suspicious repeated attempts detected
+2026-03-23 12:39:04 | MENU | Simulate login attempt selected
+2026-03-23 12:39:14 | LOGIN | Account locked | 100116292 | Suspicious repeated failed attempts
+2026-03-23 12:39:14 | MENU | Simulate login attempt selected
+2026-03-23 12:45:16 | SYSTEM | User cancelled exit request
+2026-03-23 12:45:19 | SYSTEM | Invalid exit confirmation input
+2026-03-23 12:45:21 | SYSTEM | User exited program

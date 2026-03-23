@@ -13,7 +13,7 @@
 # - Content hashing
 # - Duplicate detection logic
 #
-# This seperation keeps system-level tasks in bash and computation-heavy logic in Python.
+# This separation keeps system-level tasks in Bash and computation-heavy logic in Python.
 
 
 # Resolve script directory to ensure all file paths work regardless of where the
@@ -23,6 +23,8 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 LOG_FILE="$SCRIPT_DIR/submission_log.txt"
 SUBMISSIONS_FILE="$SCRIPT_DIR/submissions_db.txt"
 DUPLICATE_CHECKER="$SCRIPT_DIR/duplicate_checker.py"
+LOGIN_STATE_FILE="$SCRIPT_DIR/login_state.json"
+LOGIN_MONITOR="$SCRIPT_DIR/login_monitor.py"
 
 
 # Centralised logging function
@@ -123,6 +125,7 @@ submit_assignment() {
         return
     fi
 
+    # File size is limited to 5 MB to prevent oversized submissions
     if (( file_size_bytes > 5242880 )); then
         echo "File is too large. Maximum allowed size is 5MB."
         log_action "SUBMISSION | Failed | $student_id | File too large: $filename"
@@ -136,7 +139,7 @@ submit_assignment() {
     fi
 
     # Python is used here for duplicate detection because it is well suited
-    # for file hasing.
+    # for file hashing.
     checker_output=$(python3 "$DUPLICATE_CHECKER" "$SUBMISSIONS_FILE" "$file_path")
     checker_status=$?
 
@@ -230,6 +233,88 @@ list_submissions() {
     log_action "LIST | Displayed all recorded submissions"
 }
 
+
+# This function simulates login attempts for testing access control logic
+# Bash is responsible for user interaction and validation, while Python
+# handles logic such as tracking failed attempts and account locking.
+simulate_login_attempt() {
+    echo
+    echo "===== Simulate Login Attempt ====="
+
+    read -r -p "Enter student ID: " student_id
+    read -r -p "Enter login result (success/fail): " login_result
+
+    if [[ -z "$student_id" ]]; then
+        echo "Student ID cannot be empty."
+        log_action "LOGIN | Failed | Empty student ID"
+        return
+    fi
+
+    if ! [[ "$student_id" =~ ^[0-9]+$ ]]; then
+        echo "Student ID must contain digits only."
+        log_action "LOGIN | Failed | Invalid student ID format: $student_id"
+        return
+    fi
+
+    case "${login_result,,}" in
+        success|fail)
+            ;;
+        *)
+            echo "Invalid login result. Enter 'success' or 'fail'."
+            log_action "LOGIN | Failed | $student_id | Invalid login result: $login_result"
+            return
+            ;;
+    esac
+
+    if [[ ! -f "$LOGIN_MONITOR" ]]; then
+        echo "Login monitor script not found."
+        log_action "LOGIN | Failed | $student_id | Missing login monitor"
+        return
+    fi
+
+    # Python is used for login monitoring because it is better suited for:
+    # - maintaining JSON files
+    # - handling time-based logic
+    login_output=$(python3 "$LOGIN_MONITOR" "$LOGIN_STATE_FILE" "$student_id" "${login_result,,}")
+    login_status=$?
+
+    if [[ $login_status -ne 0 ]]; then
+        echo "Login monitor failed."
+        log_action "LOGIN | Failed | $student_id | Login monitor error"
+        return
+    fi
+
+    status_code="${login_output%%|*}"
+    status_message="${login_output#*|}"
+
+    echo "$status_message"
+    # Different login outcomes are logged to provide a full trail, 
+    # with successful logins, failed attempts, etc.
+    case "$status_code" in
+        SUCCESS)
+            log_action "LOGIN | Success | $student_id | Normal"
+            ;;
+        SUCCESS_SUSPICIOUS)
+            log_action "LOGIN | Success | $student_id | Suspicious repeated attempts detected"
+            ;;
+        FAIL)
+            log_action "LOGIN | Failed attempt | $student_id | Normal"
+            ;;
+        FAIL_SUSPICIOUS)
+            log_action "LOGIN | Failed attempt | $student_id | Suspicious repeated attempts detected"
+            ;;
+        LOCKED)
+            log_action "LOGIN | Account locked | $student_id | 3 failed attempts"
+            ;;
+        LOCKED_SUSPICIOUS)
+            log_action "LOGIN | Account locked | $student_id | Suspicious repeated failed attempts"
+            ;;
+        *)
+            log_action "LOGIN | Unknown response | $student_id | $login_output"
+            ;;
+    esac
+}
+
 while true
 do
     echo
@@ -261,7 +346,7 @@ do
             ;;
         4)
             echo
-            echo "Simulate login attempt selected."
+            simulate_login_attempt
             log_action "MENU | Simulate login attempt selected"
             ;;
         5)

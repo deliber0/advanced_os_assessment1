@@ -1,10 +1,20 @@
 #!/usr/bin/env python3
 
+# Duplicate Checker for Task 3 Submission System
+#
+# This script handles:
+# - generating a SHA-256 hash of file contents
+# - checking for duplicate submissions
+#
+# Python is used because it provides cleaner file handling and hashing capabilities
+# compared to Bash.
+
 import hashlib
 import os
 import sys
 
-
+# Generate a SHA-256 ash of the file contents.
+# Reading in chunks prevents high memory usage for large files.
 def calculate_file_hash(file_path):
     sha256 = hashlib.sha256()
 
@@ -14,7 +24,8 @@ def calculate_file_hash(file_path):
 
     return sha256.hexdigest()
 
-
+# Each stored submission is checked to determine if both filename and content match.
+# Only exact matches are considered duplicates.
 def is_duplicate(submissions_file, filename, file_hash):
     if not os.path.exists(submissions_file):
         return False

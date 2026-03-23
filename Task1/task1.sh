@@ -189,7 +189,7 @@ find_large_logs() {
 
 archive_large_logs() {
 	echo
-	echo "===== Archive Large Logs Files ====="
+	echo "===== Archive Large Log Files ====="
 
 	# Asking for a directory rather than it being fixed to one location.
 	read -p "Enter directory path to archive large log files from: " dir_path
@@ -280,6 +280,7 @@ confirm_exit() {
 				;;
 			*)
 				echo "Invalid input. Please enter Y or N."
+				log_action "Invalid exit confirmation input"
 				;;
 		esac
 	done

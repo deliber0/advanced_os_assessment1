@@ -10,7 +10,7 @@ QUEUE_FILE = "job_queue.txt"
 COMPLETED_FILE = "completed_jobs.txt"
 LOG_FILE = "scheduler_log.txt"
 
-TIME_QUANTUM = 5
+TIME_QUANTUM = 5 # seconds per Round Robin time slice
 
 # Logs system events with timestamps for traceability
 def log_event(message):
@@ -24,13 +24,15 @@ def log_event(message):
 def load_jobs():
     jobs = []
 
+    # If the queue file does not exist, create an empty one 
+    # so the scheduler can start cleanly
     try:
         with open(QUEUE_FILE, "r", encoding="utf-8") as file:
             for line in file:
                 line = line.strip()
                 if not line:
                     continue
-                
+
                 parts = line.split("|")
 
                 # Incorrectly formatted records are skipped instead of crashing the program
@@ -55,20 +57,22 @@ def load_jobs():
 
     return jobs
 
+
 def append_job(job):
     # Two possible approaches considered:
     # 1. Load all jobs and rewrite the full queue file
-    # 2. append only the new job
+    # 2. Append only the new job
     #
     # Appending was chosen because submitting a new job does not alter
-    # Any existing queue entries. This makes the operation simpler,
+    # any existing queue entries. This makes the operation simpler,
     # faster, and less likely to accidentally overwrite previous jobs.
 
     with open(QUEUE_FILE, "a", encoding="utf-8") as file:
         file.write(
-             f"{job['student_id']}|{job['job_name']}|"
+            f"{job['student_id']}|{job['job_name']}|"
             f"{job['execution_time']}|{job['priority']}\n"
         )
+
 
 def append_completed_job(job, scheduling_type):
     completed_time = datetime.now().strftime("%Y-%m-%d %H:%M:%S")
@@ -78,6 +82,18 @@ def append_completed_job(job, scheduling_type):
             f"{job['student_id']}|{job['job_name']}|{job['execution_time']}|"
             f"{job['priority']}|{scheduling_type}|{completed_time}\n"
         )
+
+
+def save_jobs(jobs):
+    # The queue file is rewritten after processing so that only
+    # still-pending jobs remain in the queue.
+    with open(QUEUE_FILE, "w", encoding="utf-8") as file:
+        for job in jobs:
+            file.write(
+                f"{job['student_id']}|{job['job_name']}|"
+                f"{job['execution_time']}|{job['priority']}\n"
+            )
+
 
 def process_priority_jobs():
     # Two possible approaches were considered:
@@ -92,6 +108,7 @@ def process_priority_jobs():
     print("\n=== Priority Scheduling ===")
 
     if not jobs:
+        log_event("PRIORITY | EMPTY")
         print("No pending jobs to process.")
         return
 
@@ -109,10 +126,7 @@ def process_priority_jobs():
         )
 
         log_event(
-            f"PRIORITY | StudentID={job['student_id']} | "
-            f"Job={job['job_name']} | "
-            f"ExecTime={job['execution_time']} | "
-            f"Priority={job['priority']} | Completed"
+            f"PRIORITY | {job['student_id']} | {job['job_name']} | DONE"
         )
 
         append_completed_job(job, "PRIORITY")
@@ -121,18 +135,20 @@ def process_priority_jobs():
 
     print("\nPriority scheduling complete. All pending jobs moved to completed jobs.")
 
+
 def process_round_robin():
     jobs = load_jobs()
 
     print("\n=== Round Robin Scheduling ===")
 
     if not jobs:
+        log_event("RR | EMPTY")
         print("No pending jobs to process.")
         return
 
     # Create an in-memory working queue with remaining time added.
     # A simple list was chosen rather than a dedicated queue library
-    # because it is easier 
+    # because it is easier to explain and is sufficient for this assignment.
     working_queue = []
     for job in jobs:
         working_queue.append({
@@ -160,19 +176,15 @@ def process_round_robin():
 
         if current_job["remaining_time"] > 0:
             log_event(
-                f"ROUND_ROBIN | StudentID={current_job['student_id']} | "
-                f"Job={current_job['job_name']} | "
-                f"Slice={time_slice} | "
-                f"Remaining={current_job['remaining_time']}"
+                f"RR | {current_job['student_id']} | {current_job['job_name']} | "
+                f"SLICE {time_slice}s | REM {current_job['remaining_time']}"
             )
 
             # Job is not finished, so move it to the back of the queue.
             working_queue.append(current_job)
         else:
             log_event(
-                f"ROUND_ROBIN | StudentID={current_job['student_id']} | "
-                f"Job={current_job['job_name']} | "
-                f"Slice={time_slice} | Completed"
+                f"RR | {current_job['student_id']} | {current_job['job_name']} | DONE"
             )
 
             # Completed jobs are written using their original execution time.
@@ -199,11 +211,12 @@ def process_round_robin():
 
     print("\nRound Robin scheduling complete. All pending jobs moved to completed jobs.")
 
+
 def prompt_non_empty(prompt_text, field_name):
     # Returning to the main menu after invalid input would be easier,
     # but repeated prompting was chosen because it gives a better user
     # experience during job submission.
-    # The user can still exit by entering 'q'
+    # The user can still exit by entering 'q'.
     while True:
         value = input(prompt_text).strip()
 
@@ -215,7 +228,8 @@ def prompt_non_empty(prompt_text, field_name):
             print(f"{field_name} cannot be empty. Enter 'q' to cancel.")
             continue
 
-        return value    
+        return value
+
 
 def prompt_positive_integer(prompt_text, field_name):
     while True:
@@ -234,6 +248,7 @@ def prompt_positive_integer(prompt_text, field_name):
         except ValueError:
             print(f"{field_name} must be a whole number. Enter 'q' to cancel.")
 
+
 def prompt_priority(prompt_text):
     while True:
         value = input(prompt_text).strip()
@@ -250,16 +265,19 @@ def prompt_priority(prompt_text):
         except ValueError:
             print("Priority must be a whole number. Enter 'q' to cancel.")
 
+
 def submit_job():
     print("\n=== Submit Job Request ===")
     print("Enter 'q' at any prompt to cancel submission.")
 
     student_id = prompt_non_empty("Enter student ID: ", "Student ID")
     if student_id is None:
+        log_event("SUBMIT | CANCELLED")
         return
 
     job_name = prompt_non_empty("Enter job name: ", "Job name")
     if job_name is None:
+        log_event("SUBMIT | CANCELLED")
         return
 
     execution_time = prompt_positive_integer(
@@ -267,10 +285,12 @@ def submit_job():
         "Execution time"
     )
     if execution_time is None:
+        log_event("SUBMIT | CANCELLED")
         return
 
     priority = prompt_priority("Enter priority (1-10): ")
     if priority is None:
+        log_event("SUBMIT | CANCELLED")
         return
 
     job = {
@@ -283,16 +303,16 @@ def submit_job():
     append_job(job)
 
     log_event(
-        f"SUBMIT | StudentID={student_id} | Job={job_name} | "
-        f"ExecTime={execution_time} | Priority={priority}"
+        f"SUBMIT | {student_id} | {job_name} | {execution_time}s | P{priority}"
     )
 
     print("Job submitted successfully.")
 
+
 def view_pending_jobs():
     # Two ways were considered here
     # 1. Print each job line exactly as stored in the file
-    # 2. Format the output 
+    # 2. Format the output
 
     # Formatted output was chosen because it is significantly more
     # readable and provides a clearer overview of the queue.
@@ -300,6 +320,7 @@ def view_pending_jobs():
     jobs = load_jobs()
 
     print("\n=== Pending Jobs ===")
+    log_event("VIEW | PENDING")
 
     if not jobs:
         # Explicit message chosen instead of printing nothing
@@ -322,12 +343,14 @@ def view_pending_jobs():
             f"{job['priority']:<10}"
         )
 
+
 def view_completed_jobs():
     # Completed jobs are stored with additional metadata:
     # scheduling type and completion timestamp.
     # This allows the user to review how jobs were processed.
 
     print("\n=== Completed Jobs ===")
+    log_event("VIEW | COMPLETED")
 
     try:
         with open(COMPLETED_FILE, "r", encoding="utf-8") as file:
@@ -339,7 +362,7 @@ def view_completed_jobs():
         print("No completed jobs found.")
         return
 
-    # Table formatting 
+    # Table formatting
     print(f"{'Pos':<5}{'Student ID':<15}{'Job Name':<20}{'Exec Time':<12}{'Priority':<10}{'Method':<12}{'Completed At'}")
     print("-" * 95)
 
@@ -362,15 +385,6 @@ def view_completed_jobs():
             f"{timestamp}"
         )
 
-def save_jobs(jobs):
-    # The queue file is rewritten after processing so that only
-    # still-pending jobs remain in the queue.
-    with open(QUEUE_FILE, "w", encoding="utf-8") as file:
-        for job in jobs:
-            file.write(
-                f"{job['student_id']}|{job['job_name']}|"
-                f"{job['execution_time']}|{job['priority']}\n"
-            )
 
 # Menu
 def print_menu():
@@ -386,7 +400,7 @@ def confirm_exit():
     while True:
         choice = input("Are you sure you want to exit? (Y/N): ").strip().upper()
         if choice == "Y":
-            log_event("SYSTEM | User exited program")
+            log_event("SYSTEM | EXIT")
             print("Exiting system.")
             return True
         elif choice == "N":
@@ -405,11 +419,11 @@ def choose_scheduling_method():
         choice = input("Select an option: ").strip()
 
         if choice == "1":
-            log_event("SCHEDULER | Round Robin selected")
+            log_event("SCHEDULER | ROUND_ROBIN")
             process_round_robin()
             return
         elif choice == "2":
-            log_event("SCHEDULER | Priority Scheduling selected")
+            log_event("SCHEDULER | PRIORITY")
             process_priority_jobs()
             return
         elif choice == "3":
@@ -419,7 +433,7 @@ def choose_scheduling_method():
 
 
 def main():
-    log_event("SYSTEM | Scheduler started")
+    log_event("SYSTEM | START")
 
     while True:
         print_menu()
