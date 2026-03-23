@@ -33,6 +33,68 @@ confirm_exit() {
     done
 }
 
+submit_assignment() {
+    echo
+    echo "===== Submit Assignment ====="
+
+    read -r -p "Enter student ID: " student_id
+    read -r -p "Enter file path: " file_path
+
+    if [[ -z "$student_id" ]]; then
+        echo "Student ID cannot be empty."
+        log_action "SUBMISSION | Failed | Empty student ID"
+        return
+    fi
+
+    if ! [[ "$student_id" =~ ^[0-9]+$ ]]; then
+        echo "Student ID must contain digits only."
+        log_action "SUBMISSION | Failed | Invalid student ID format: $student_id"
+        return
+    fi  
+
+    if [[ -z "$file_path" ]]; then
+        echo "File path cannot be empty."
+        log_action "SUBMISSION | Failed | $student_id | Empty file path"
+        return
+    fi
+
+    if [[ ! -f "$file_path" ]]; then
+        echo "File does not exist."
+        log_action "SUBMISSION | Failed | $student_id | File not found: $file_path"
+        return
+    fi
+
+    filename=$(basename "$file_path")
+    extension="${filename##*.}"
+
+    case "${extension,,}" in
+        pdf|docx)
+            ;;
+        *)
+            echo "Invalid file type. Only .pdf and .docx files are allowed."
+            log_action "SUBMISSION | Failed | $student_id | Invalid file type: $filename"
+            return
+            ;;
+    esac
+
+    file_size_bytes=$(stat -c%s "$file_path" 2>/dev/null)
+
+    if [[ -z "$file_size_bytes" ]]; then
+        echo "Could not determine file size."
+        log_action "SUBMISSION | Failed | $student_id | Could not read file size: $filename"
+        return
+    fi
+
+    if (( file_size_bytes > 5242880 )); then
+        echo "File is too large. Maximum allowed size is 5MB."
+        log_action "SUBMISSION | Failed | $student_id | File too large: $filename"
+        return
+    fi
+
+    echo "File passed initial validation."
+    log_action "SUBMISSION | Passed validation | $student_id | $filename"
+}
+
 while true
 do
     echo
@@ -50,9 +112,7 @@ do
 
     case "$choice" in
         1)
-            echo
-            echo "Submit assignment selected."
-            log_action "MENU | Submit assignment selected"
+            submit_assignment
             ;;
         2)
             echo
