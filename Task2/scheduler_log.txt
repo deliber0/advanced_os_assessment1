@@ -1,0 +1,49 @@
+2026-03-22 19:32:54 | SYSTEM | Scheduler started
+2026-03-22 19:33:04 | SCHEDULER | Round Robin selected
+2026-03-22 19:33:06 | SCHEDULER | Priority Scheduling selected
+2026-03-22 19:33:13 | SYSTEM | User exited program
+2026-03-22 20:03:00 | SYSTEM | Scheduler started
+2026-03-22 20:03:25 | SUBMIT | StudentID=123 | Job=file some files | ExecTime=300 | Priority=3
+2026-03-22 21:09:09 | SYSTEM | Scheduler started
+2026-03-22 21:09:38 | SYSTEM | User exited program
+2026-03-22 21:09:40 | SYSTEM | Scheduler started
+2026-03-23 00:03:18 | SYSTEM | Scheduler started
+2026-03-23 00:04:08 | SUBMIT | StudentID=100116292 | Job=render_job | ExecTime=12 | Priority=8
+2026-03-23 00:04:54 | SUBMIT | StudentID=100116293 | Job=analysis_job | ExecTime=5 | Priority=4
+2026-03-23 00:05:12 | SUBMIT | StudentID=100116294 | Job=backup_job | ExecTime=9 | Priority=10
+2026-03-23 00:05:50 | SCHEDULER | Priority Scheduling selected
+2026-03-23 00:06:00 | SCHEDULER | Priority Scheduling selected
+2026-03-23 00:06:32 | SYSTEM | User exited program
+2026-03-23 00:06:34 | SYSTEM | Scheduler started
+2026-03-23 00:06:38 | SCHEDULER | Priority Scheduling selected
+2026-03-23 00:06:38 | PRIORITY | StudentID=100116294 | Job=backup_job | ExecTime=9 | Priority=10 | Completed
+2026-03-23 00:06:38 | PRIORITY | StudentID=100116292 | Job=render_job | ExecTime=12 | Priority=8 | Completed
+2026-03-23 00:06:38 | PRIORITY | StudentID=100116293 | Job=analysis_job | ExecTime=5 | Priority=4 | Completed
+2026-03-23 00:06:38 | PRIORITY | StudentID=123 | Job=file some files | ExecTime=300 | Priority=3 | Completed
+2026-03-23 01:22:17 | SYSTEM | Scheduler started
+2026-03-23 01:22:42 | SUBMIT | StudentID=1001 | Job=RenderJob | ExecTime=12 | Priority=8
+2026-03-23 01:22:54 | SUBMIT | StudentID=1002 | Job=MLTraining | ExecTime=4 | Priority=5
+2026-03-23 01:25:01 | SYSTEM | Scheduler started
+2026-03-23 01:25:12 | SUBMIT | StudentID=1001 | Job=RenderJob | ExecTime=12 | Priority=8
+2026-03-23 01:25:25 | SUBMIT | StudentID=1002 | Job=MLTraining | ExecTime=4 | Priority=5
+2026-03-23 01:25:35 | SUBMIT | StudentID=1003 | Job=Simulation | ExecTime=7 | Priority=9
+2026-03-23 01:31:13 | SYSTEM | User exited program
+2026-03-23 01:31:25 | SYSTEM | Scheduler started
+2026-03-23 01:32:56 | SCHEDULER | Priority Scheduling selected
+2026-03-23 01:32:56 | PRIORITY | StudentID=1003 | Job=Simulation | ExecTime=7 | Priority=9 | Completed
+2026-03-23 01:32:56 | PRIORITY | StudentID=1001 | Job=RenderJob | ExecTime=12 | Priority=8 | Completed
+2026-03-23 01:32:56 | PRIORITY | StudentID=1002 | Job=MLTraining | ExecTime=4 | Priority=5 | Completed
+2026-03-23 01:48:18 | SYSTEM | User exited program
+2026-03-23 01:48:20 | SYSTEM | Scheduler started
+2026-03-23 01:49:12 | SUBMIT | StudentID=1001 | Job=RenderJob | ExecTime=12 | Priority=8
+2026-03-23 01:49:21 | SUBMIT | StudentID=1002 | Job=MLTraining | ExecTime=4 | Priority=5
+2026-03-23 01:49:31 | SUBMIT | StudentID=1003 | Job=Simulation | ExecTime=7 | Priority=9
+2026-03-23 01:49:47 | SCHEDULER | Round Robin selected
+2026-03-23 01:49:47 | ROUND_ROBIN | StudentID=1001 | Job=RenderJob | Slice=5 | Remaining=7
+2026-03-23 01:49:47 | ROUND_ROBIN | StudentID=1002 | Job=MLTraining | Slice=4 | Completed
+2026-03-23 01:49:47 | ROUND_ROBIN | StudentID=1003 | Job=Simulation | Slice=5 | Remaining=2
+2026-03-23 01:49:47 | ROUND_ROBIN | StudentID=1001 | Job=RenderJob | Slice=5 | Remaining=2
+2026-03-23 01:49:47 | ROUND_ROBIN | StudentID=1003 | Job=Simulation | Slice=2 | Completed
+2026-03-23 01:49:47 | ROUND_ROBIN | StudentID=1001 | Job=RenderJob | Slice=2 | Completed
+2026-03-23 01:52:01 | SYSTEM | User exited program
+2026-03-23 02:35:10 | SYSTEM | Scheduler started
