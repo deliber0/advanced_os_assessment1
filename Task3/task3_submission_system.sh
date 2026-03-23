@@ -1,10 +1,23 @@
 #!/bin/bash
 
-LOG_FILE="submission_log.txt"
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+LOG_FILE="$SCRIPT_DIR/submission_log.txt"
+SUBMISSIONS_FILE="$SCRIPT_DIR/submissions_db.txt"
+DUPLICATE_CHECKER="$SCRIPT_DIR/duplicate_checker.py"
 
 log_action() {
     local message="$1"
     echo "$(date '+%Y-%m-%d %H:%M:%S') | $message" >> "$LOG_FILE"
+}
+
+record_submission() {
+    local student_id="$1"
+    local filename="$2"
+    local file_hash="$3"
+    local timestamp
+
+    timestamp=$(date '+%Y-%m-%d %H:%M:%S')
+    echo "$student_id|$filename|$file_hash|$timestamp" >> "$SUBMISSIONS_FILE"
 }
 
 confirm_exit() {
@@ -50,7 +63,7 @@ submit_assignment() {
         echo "Student ID must contain digits only."
         log_action "SUBMISSION | Failed | Invalid student ID format: $student_id"
         return
-    fi  
+    fi
 
     if [[ -z "$file_path" ]]; then
         echo "File path cannot be empty."
@@ -91,8 +104,41 @@ submit_assignment() {
         return
     fi
 
-    echo "File passed initial validation."
-    log_action "SUBMISSION | Passed validation | $student_id | $filename"
+    if [[ ! -f "$DUPLICATE_CHECKER" ]]; then
+        echo "Duplicate checker script not found."
+        log_action "SUBMISSION | Failed | $student_id | Missing duplicate checker"
+        return
+    fi
+
+    checker_output=$(python3 "$DUPLICATE_CHECKER" "$SUBMISSIONS_FILE" "$file_path")
+    checker_status=$?
+
+    if [[ $checker_status -ne 0 ]]; then
+        echo "Duplicate check failed."
+        log_action "SUBMISSION | Failed | $student_id | Duplicate checker error | $filename"
+        return
+    fi
+
+    duplicate_status="${checker_output%%|*}"
+    file_hash="${checker_output#*|}"
+
+    case "$duplicate_status" in
+        DUPLICATE)
+            echo "Duplicate submission rejected."
+            log_action "SUBMISSION | Rejected duplicate | $student_id | $filename"
+            return
+            ;;
+        UNIQUE)
+            record_submission "$student_id" "$filename" "$file_hash"
+            echo "Submission recorded successfully."
+            log_action "SUBMISSION | Recorded | $student_id | $filename"
+            ;;
+        *)
+            echo "Unexpected duplicate checker response."
+            log_action "SUBMISSION | Failed | $student_id | Unexpected duplicate checker response | $filename"
+            return
+            ;;
+    esac
 }
 
 while true

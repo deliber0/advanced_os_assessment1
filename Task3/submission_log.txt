@@ -1,0 +1,36 @@
+2026-03-23 03:25:05 | MENU | Submit assignment selected
+2026-03-23 03:25:24 | MENU | Submit assignment selected
+2026-03-23 03:25:29 | SYSTEM | User exited program
+2026-03-23 03:25:32 | MENU | Submit assignment selected
+2026-03-23 03:26:02 | MENU | Submit assignment selected
+2026-03-23 03:26:05 | SYSTEM | User exited program
+2026-03-23 03:26:32 | SUBMISSION | Failed | 1001 | Empty file path
+2026-03-23 03:26:40 | SUBMISSION | Failed | Empty student ID
+2026-03-23 04:05:44 | SUBMISSION | Failed | llll | Invalid file type: test.txt
+2026-03-23 04:06:03 | SUBMISSION | Failed | 1 | File not found: [A[B
+2026-03-23 04:06:13 | SUBMISSION | Passed validation | 1 | test.pdf
+2026-03-23 04:06:44 | SUBMISSION | Failed | 1 | File too large: large.pdf
+2026-03-23 04:28:45 | MENU | Invalid option entered: 5y
+2026-03-23 04:28:46 | SYSTEM | User exited program
+2026-03-23 04:30:17 | SUBMISSION | Passed validation | 1 | test.pdf
+2026-03-23 04:30:30 | SUBMISSION | Passed validation | 1 | test.pdf
+2026-03-23 04:30:57 | SUBMISSION | Passed validation | 1 | test.pdf
+2026-03-23 04:31:04 | MENU | List submitted assignments selected
+2026-03-23 04:31:17 | SUBMISSION | Passed validation | 1 | test.pdf
+2026-03-23 04:31:50 | SUBMISSION | Passed validation | 1 | test.docx
+2026-03-23 04:32:06 | SUBMISSION | Passed validation | 1 | test2.docx
+2026-03-23 04:38:16 | MENU | Invalid option entered: 
+2026-03-23 04:38:17 | SYSTEM | User exited program
+2026-03-23 04:38:17 | SUBMISSION | Failed | 1 | Unexpected duplicate checker response | test2.docx
+2026-03-23 04:38:27 | SUBMISSION | Recorded | 1 | test.docx
+2026-03-23 04:38:36 | SUBMISSION | Recorded | 1 | test2.docx
+2026-03-23 04:38:42 | MENU | List submitted assignments selected
+2026-03-23 04:38:45 | MENU | Simulate login attempt selected
+2026-03-23 04:38:48 | MENU | Check submitted file selected
+2026-03-23 04:38:53 | MENU | Check submitted file selected
+2026-03-23 04:38:54 | MENU | Check submitted file selected
+2026-03-23 04:38:54 | MENU | Invalid option entered: 
+2026-03-23 04:38:54 | MENU | Check submitted file selected
+2026-03-23 04:38:54 | MENU | Check submitted file selected
+2026-03-23 04:38:55 | MENU | Check submitted file selected
+2026-03-23 04:41:46 | SUBMISSION | Rejected duplicate | 1 | test.docx
