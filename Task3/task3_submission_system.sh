@@ -1,5 +1,28 @@
 #!/bin/bash
 
+confirm_exit() {
+    echo
+    echo "===== Exit Confirmation ====="
+
+    while true; do
+        read -r -p "Are you sure you want to exit? (Y/N): " confirm_exit_choice
+
+        case "$confirm_exit_choice" in
+            Y|y)
+                echo "Exiting system..."
+                return 0
+                ;;
+            N|n)
+                echo "Exit cancelled."
+                return 1
+                ;;
+            *)
+                echo "Invalid input. Please enter Y or N."
+                ;;
+        esac
+    done
+}
+
 while true
 do
     echo
@@ -33,9 +56,9 @@ do
             echo "Simulate login attempt selected."
             ;;
         5)
-            echo
-            echo "Exiting system..."
-            break
+            if confirm_exit; then
+                break
+            fi
             ;;
         *)
             echo
